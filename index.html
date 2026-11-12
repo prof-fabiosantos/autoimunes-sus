@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lúpus: conhecer para cuidar cedo</title>
+<meta name="description" content="Protótipo educativo sobre lúpus no SUS: questionário de orientação, cartilha e perguntas respondidas no próprio aparelho.">
+<!-- LGPD: sem fontes, scripts ou analytics de terceiros. A única conexão externa é o
+     download dos pesos do modelo LFM (Hugging Face ou espelho configurado em js/config.js). -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self' blob:; style-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://huggingface.co https://*.huggingface.co https://*.hf.co; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<!-- Protótipo em validação: fora dos buscadores -->
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0b5d6b">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<a class="pular" href="#conteudo">Pular para o conteúdo</a>
+<header class="topo">
+  <a class="marca" href="#inicio"><span class="logo" aria-hidden="true"></span>Lúpus · cuidar cedo</a>
+  <span class="selo" title="Nada do que você responde ou pergunta sai deste aparelho">🔒 Só no seu aparelho</span>
+</header>
+
+<main id="conteudo" tabindex="-1"></main>
+
+<nav class="abas" aria-label="Seções">
+  <a href="#inicio" data-aba="inicio"><span aria-hidden="true">⌂</span>Início</a>
+  <a href="#triagem" data-aba="triagem"><span aria-hidden="true">✓</span>Questionário</a>
+  <a href="#cartilha" data-aba="cartilha"><span aria-hidden="true">▤</span>Cartilha</a>
+  <a href="#pergunte" data-aba="pergunte"><span aria-hidden="true">?</span>Pergunte</a>
+  <a href="#privacidade" data-aba="privacidade"><span aria-hidden="true">🔒</span>Privacidade</a>
+</nav>
+
+<dialog id="consentimento" aria-labelledby="cons-titulo">
+  <h2 id="cons-titulo">Antes de começar</h2>
+  <p>Este é um <b>protótipo educativo</b> de um projeto de pesquisa da UFAM. Ele <b>não faz diagnóstico</b> e não substitui consulta.</p>
+  <ul>
+    <li>Não há cadastro nem login.</li>
+    <li>Suas respostas e perguntas <b>ficam só neste aparelho</b>. Nada é enviado para a universidade nem para outra empresa.</li>
+    <li>Se você usar o “Pergunte à cartilha” com IA, o aparelho baixa um modelo de linguagem (de 200 MB a 850 MB) da internet. Esse download não envia nenhuma informação sua.</li>
+    <li>Você pode apagar tudo a qualquer momento em <b>Privacidade</b>.</li>
+  </ul>
+  <p class="pequeno">Em caso de urgência, ligue <b>192 (SAMU)</b>.</p>
+  <div class="acoes">
+    <button class="primario" id="cons-ok">Entendi, quero continuar</button>
+  </div>
+</dialog>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

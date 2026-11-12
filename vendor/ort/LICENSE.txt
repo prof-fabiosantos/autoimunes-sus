@@ -1,0 +1,1 @@
+MIT License - onnxruntime-web (Microsoft). https://github.com/microsoft/onnxruntime/blob/main/LICENSE

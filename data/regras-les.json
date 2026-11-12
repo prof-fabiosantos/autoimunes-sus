@@ -1,0 +1,128 @@
+{
+  "versao": "0.1.0-rascunho",
+  "doenca": "Lúpus eritematoso sistêmico (LES)",
+  "status_validacao": "RASCUNHO — requer validação clínica pela coorientação antes de qualquer teste com pessoas",
+  "fontes": [
+    "SBR — Cartilha Lúpus (Sociedade Brasileira de Reumatologia)",
+    "Ministério da Saúde — PCDT Lúpus Eritematoso Sistêmico, Portaria Conjunta SAES/SCTIE/MS nº 21/2022",
+    "Aringer M. et al. 2019 EULAR/ACR classification criteria for SLE (usados só para escolher os domínios; não são critérios de triagem)"
+  ],
+  "nota_metodologica": "Sistema especialista baseado em regras. Não é aprendizado de máquina e não estima probabilidade de doença. A saída é uma orientação de busca de atendimento, nunca um diagnóstico.",
+
+  "alertas": [
+    { "id": "u_peito_ar", "texto": "Dor no peito junto com falta de ar forte agora?", "fonte": "SBR" },
+    { "id": "u_convulsao", "texto": "Teve convulsão (crise com perda de consciência e tremores) recentemente?", "fonte": "SBR" },
+    { "id": "u_confusao", "texto": "Confusão mental súbita, não reconhece pessoas ou lugares, ou comportamento muito diferente do habitual?", "fonte": "SBR" },
+    { "id": "u_urina", "texto": "Está urinando muito pouco ou nada, com inchaço que piorou rápido?", "fonte": "SBR" },
+    { "id": "u_sangramento", "texto": "Sangramento que não para, ou manchas roxas espalhadas pelo corpo sem ter batido?", "fonte": "SBR" }
+  ],
+
+  "dominios": [
+    {
+      "id": "articulacoes", "nome": "Articulações",
+      "perguntas": [
+        { "id": "a_dor", "texto": "Dor nas articulações (juntas) das mãos, punhos, joelhos ou pés, que vai e volta?" },
+        { "id": "a_inchaco", "texto": "Inchaço em duas ou mais articulações?" }
+      ]
+    },
+    {
+      "id": "pele", "nome": "Pele e cabelo",
+      "perguntas": [
+        { "id": "p_borboleta", "texto": "Mancha avermelhada no rosto, nas bochechas e no nariz, em formato de borboleta?" },
+        { "id": "p_sol", "texto": "Manchas ou vermelhidão que aparecem ou pioram depois de pegar sol?" },
+        { "id": "p_cabelo", "texto": "Queda de cabelo acima do normal, sem outra explicação?" },
+        { "id": "p_dedos", "texto": "Dedos que ficam brancos ou roxos no frio, ou feridas doloridas nas pontas dos dedos?" }
+      ]
+    },
+    {
+      "id": "boca", "nome": "Boca e nariz",
+      "perguntas": [
+        { "id": "b_aftas", "texto": "Feridas na boca ou no nariz que aparecem com frequência, às vezes sem doer?" }
+      ]
+    },
+    {
+      "id": "gerais", "nome": "Sintomas gerais",
+      "perguntas": [
+        { "id": "g_febre", "texto": "Febre baixa que vai e volta, sem infecção identificada?" },
+        { "id": "g_cansaco", "texto": "Cansaço ou desânimo intenso que atrapalha a rotina?" },
+        { "id": "g_peso", "texto": "Perda de peso ou de apetite sem estar tentando?" },
+        { "id": "g_inguas", "texto": "Ínguas (caroços no pescoço, axilas ou virilha)?" }
+      ]
+    },
+    {
+      "id": "pulmao_coracao", "nome": "Pulmão e coração",
+      "perguntas": [
+        { "id": "c_respirar", "texto": "Dor no peito que piora ao respirar fundo, ou tosse seca persistente?" },
+        { "id": "c_palpita", "texto": "Palpitações ou falta de ar com esforços leves?" }
+      ]
+    },
+    {
+      "id": "rins", "nome": "Rins",
+      "perguntas": [
+        { "id": "r_espuma", "texto": "Urina com muita espuma?" },
+        { "id": "r_inchaco", "texto": "Inchaço nas pernas, nos pés ou em volta dos olhos?" },
+        { "id": "r_pressao", "texto": "Pressão alta descoberta há pouco tempo?" }
+      ]
+    },
+    {
+      "id": "sangue", "nome": "Sangue",
+      "perguntas": [
+        { "id": "s_hematoma", "texto": "Manchas roxas com facilidade ou sangramento na gengiva?" },
+        { "id": "s_menstruacao", "texto": "Menstruação muito mais intensa do que o habitual?" },
+        { "id": "s_palidez", "texto": "Palidez e cansaço, ou já disseram que você tem anemia?" }
+      ]
+    },
+    {
+      "id": "neuro", "nome": "Sistema nervoso e emoções",
+      "perguntas": [
+        { "id": "n_humor", "texto": "Mudanças de humor, tristeza ou ansiedade que surgiram junto com os outros sintomas?" }
+      ]
+    }
+  ],
+
+  "duracao": {
+    "id": "duracao",
+    "texto": "Há quanto tempo esses sinais aparecem (mesmo que vão e voltem)?",
+    "opcoes": [
+      { "valor": "menos_2_semanas", "rotulo": "Menos de 2 semanas" },
+      { "valor": "2_a_6_semanas", "rotulo": "De 2 a 6 semanas" },
+      { "valor": "mais_6_semanas", "rotulo": "Mais de 6 semanas" }
+    ]
+  },
+
+  "limiares": {
+    "_comentario": "Valores provisórios para discussão com a coorientação.",
+    "dominios_para_procurar_ubs": 2,
+    "duracao_que_reforca": ["2_a_6_semanas", "mais_6_semanas"],
+    "dominios_prioritarios": ["rins", "sangue"]
+  },
+
+  "orientacoes": {
+    "urgencia": {
+      "nivel": "urgencia",
+      "titulo": "Procure atendimento de urgência agora",
+      "texto": "Você marcou um sinal que precisa de avaliação rápida. Vá a uma UPA ou pronto-socorro, ou ligue 192 (SAMU). Não espere pela UBS.",
+      "secao_cartilha": "urgencia"
+    },
+    "ubs": {
+      "nivel": "ubs",
+      "titulo": "Procure sua UBS e leve este resumo",
+      "texto": "Você marcou sinais em mais de uma parte do corpo, que se repetem há algum tempo. Isso merece uma consulta na Unidade Básica de Saúde. Leve o resumo abaixo para a equipe.",
+      "secao_cartilha": "quando-ubs"
+    },
+    "observar": {
+      "nivel": "observar",
+      "titulo": "Fique atento e converse com a equipe da UBS",
+      "texto": "Você marcou poucos sinais. Eles são comuns e podem ter várias causas. Observe se continuam ou se aparecem outros, e comente com a equipe da UBS na próxima oportunidade.",
+      "secao_cartilha": "sinais-gerais"
+    },
+    "nenhum": {
+      "nivel": "nenhum",
+      "titulo": "Nenhum sinal marcado",
+      "texto": "Você não marcou nenhum dos sinais da lista. Se tiver dúvidas sobre sua saúde, procure a UBS.",
+      "secao_cartilha": "o-que-e"
+    }
+  },
+
+  "aviso_fixo": "Este questionário é educativo. Ele não faz diagnóstico, não substitui consulta e não diz se você tem ou não tem lúpus. Muitos desses sinais têm outras causas, a maioria simples."
+}

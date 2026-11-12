@@ -1,0 +1,33 @@
+{
+  "_uso": "Casos fictícios para o teste-piloto e para demonstração. Nenhum dado real. Validar com a coorientação.",
+  "casos": [
+    {
+      "id": "caso-1",
+      "titulo": "Juntas e pele há dois meses",
+      "descricao": "Mulher de 27 anos, dor e inchaço nas mãos que vão e voltam, mancha no rosto que piora no sol e queda de cabelo.",
+      "respostas": { "a_dor": true, "a_inchaco": true, "p_borboleta": true, "p_sol": true, "p_cabelo": true, "duracao": "mais_6_semanas" },
+      "esperado": "ubs"
+    },
+    {
+      "id": "caso-2",
+      "titulo": "Cansaço isolado",
+      "descricao": "Homem de 34 anos, cansaço depois de semanas dormindo pouco, sem outros sinais.",
+      "respostas": { "g_cansaco": true, "duracao": "2_a_6_semanas" },
+      "esperado": "observar"
+    },
+    {
+      "id": "caso-3",
+      "titulo": "Dor no peito e falta de ar",
+      "descricao": "Mulher de 31 anos, dor nas juntas há meses e hoje dor no peito com falta de ar forte.",
+      "respostas": { "a_dor": true, "u_peito_ar": true, "duracao": "mais_6_semanas" },
+      "esperado": "urgencia"
+    },
+    {
+      "id": "caso-4",
+      "titulo": "Urina espumosa",
+      "descricao": "Mulher de 22 anos, urina com espuma e inchaço em volta dos olhos ao acordar há 3 semanas.",
+      "respostas": { "r_espuma": true, "r_inchaco": true, "duracao": "2_a_6_semanas" },
+      "esperado": "ubs"
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 // Service worker: deixa o app funcionando sem internet.
 // Os pesos dos modelos LFM ficam no cache "transformers-cache", gerenciado pelo Transformers.js.
-const VERSAO = "app-v0.1.1";
+const VERSAO = "app-v0.1.3";
 const RUNTIME = "app-runtime";
 const CASCA = [
   "./", "index.html", "manifest.webmanifest", "css/app.css",
@@ -11,7 +11,9 @@ const CASCA = [
 ];
 
 self.addEventListener("install", (e) => {
-  e.waitUntil(caches.open(VERSAO).then((c) => c.addAll(CASCA)).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(VERSAO)
+    .then((c) => c.addAll(CASCA.map((u) => new Request(u, { cache: "reload" })))) // ignora o cache HTTP do GitHub Pages
+    .then(() => self.skipWaiting()));
 });
 
 self.addEventListener("activate", (e) => {
@@ -40,7 +42,7 @@ self.addEventListener("fetch", (e) => {
   // Casca do app: cache primeiro, atualiza em segundo plano.
   e.respondWith(caches.open(VERSAO).then(async (c) => {
     const hit = await c.match(e.request, { ignoreSearch: true });
-    const rede = fetch(e.request).then((res) => { if (res.ok) c.put(e.request, res.clone()); return res; }).catch(() => hit);
+    const rede = fetch(e.request, { cache: "no-cache" }).then((res) => { if (res.ok) c.put(e.request, res.clone()); return res; }).catch(() => hit);
     return hit || rede;
   }));
 });

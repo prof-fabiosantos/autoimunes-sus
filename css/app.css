@@ -13,6 +13,7 @@
     --urg: #ff8f84; --urg-suave: #3a1c1a; --ubs: #f2bd5c; --ubs-suave: #33280f; --ok: #8fd19b; --ok-suave: #1a2f1d; color-scheme: dark; }
 }
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 html { -webkit-text-size-adjust: 100%; }
 body { margin: 0; background: var(--bg); color: var(--fg); font: 17px/1.55 var(--fonte); padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
 h1, h2, h3 { line-height: 1.25; margin: 0 0 .4em; text-wrap: balance; }

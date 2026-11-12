@@ -38,6 +38,7 @@ const rotas = { inicio: vInicio, triagem: vTriagem, cartilha: vCartilha, pergunt
 function navegar() {
   const [rota, arg] = (location.hash.slice(1) || "inicio").split("/");
   const fn = rotas[rota] || vInicio;
+  if (rota !== "pergunte" && ia.worker) desligarIA();
   document.querySelectorAll(".abas a").forEach((a) => a.toggleAttribute("aria-current", a.dataset.aba === rota));
   if (a11yFoco) a11yFoco = false; else main.focus({ preventScroll: true });
   window.scrollTo(0, 0);
@@ -46,7 +47,6 @@ function navegar() {
 }
 let a11yFoco = true;
 addEventListener("hashchange", navegar);
-navegar();
 
 // ---------------------------------------------------------------- início
 function vInicio() {
@@ -61,7 +61,7 @@ function vInicio() {
     <a class="cartao atalho" href="#cartilha"><span class="ic">▤</span><span><b>Cartilha</b><p>O que é o lúpus, sinais, diagnóstico, tratamento no SUS e cuidados.</p></span></a>
     <a class="cartao atalho" href="#pergunte"><span class="ic">?</span><span><b>Pergunte à cartilha</b><p>Escreva sua dúvida. A resposta é montada no seu aparelho, só com o conteúdo da cartilha.</p></span></a>
   </div>
-  <p class="pequeno">Projeto PIBITI-PROTEC 2026/2027 · UFAM · Grupo Saúde Global, Bioética e Direitos Humanos. Conteúdo em validação clínica (versão ${esc(regras.versao)}).</p>`;
+  <p class="pequeno">Projeto PIBITI-PROTEC 2026/2027 · UFAM · Grupo Saúde Global, Bioética e Direitos Humanos. Conteúdo em validação clínica (regras ${esc(regras.versao)}). App versão ${esc(CONFIG.versaoApp)}.</p>`;
 }
 
 // ---------------------------------------------------------------- triagem
@@ -258,24 +258,61 @@ function cartilhaSecao(id) {
 }
 
 // ---------------------------------------------------------------- pergunte (RAG)
-const ia = { worker: null, ativo: false, carregando: false, modelo: null, device: null, conversa: [] };
+const ia = { worker: null, ativo: false, carregando: false, modelo: null, device: null, conversa: [], avancado: false, timer: null };
 const temGPU = !!navigator.gpu;
-const aparelhoLeve = (navigator.deviceMemory ?? 8) <= 4 || /Android|iPhone|iPad/i.test(navigator.userAgent);
+const celular = /Android|iPhone|iPad/i.test(navigator.userAgent);
+const aparelhoLeve = (navigator.deviceMemory ?? 8) <= 4 || celular;
+// Aparelho fraco: celular, pouca memória ou sem WebGPU. Nele a IA fica escondida em
+// "Opções avançadas" (no teste do Galaxy A15 o LFM2.5-230M deixou o aparelho lento).
+const aparelhoFraco = aparelhoLeve || !temGPU;
 const modeloPadrao = CONFIG.modelos.find((m) => m.leve === aparelhoLeve) ?? CONFIG.modelos[0];
+const OCIOSO_MS = 5 * 60 * 1000; // descarrega o modelo após 5 min sem perguntas
+
+/** Libera a memória do modelo: encerra o worker (os pesos continuam no cache do aparelho). */
+function desligarIA(motivo) {
+  clearTimeout(ia.timer);
+  if (!ia.worker) return;
+  ia.worker.terminate();
+  Object.assign(ia, { worker: null, ativo: false, carregando: false, modelo: null, device: null });
+  if ($("#modelo")) $("#modelo").value = "";
+  if ($("#carga")) $("#carga").hidden = true;
+  if ($("#enviar")) $("#enviar").disabled = false;
+  if ($("#desligar")) $("#desligar").hidden = true;
+  if ($("#estado-ia") && motivo) $("#estado-ia").textContent = motivo;
+}
+function reiniciarOcioso() {
+  clearTimeout(ia.timer);
+  ia.timer = setTimeout(() => desligarIA("IA desligada após 5 minutos sem uso, para liberar a memória. Escolha o modo com IA de novo quando quiser."), OCIOSO_MS);
+}
+// Em aparelho fraco, sair do app (trocar de aplicativo, bloquear a tela) já libera a memória.
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden && aparelhoFraco) desligarIA("IA desligada ao sair do aplicativo, para liberar a memória.");
+});
 
 function vPergunte() {
+  const mostrarIA = !aparelhoFraco || ia.avancado;
+  const modelosVisiveis = CONFIG.modelos.filter((m) => !aparelhoFraco || m.leve);
   main.innerHTML = `
   <section class="cartao">
     <h1>Pergunte à cartilha</h1>
     <p class="mut">As respostas usam <b>só</b> o conteúdo da cartilha e são montadas no seu aparelho. Sua pergunta não é enviada nem guardada.</p>
+    ${mostrarIA ? `
     <label for="modelo" class="pequeno">Modo de resposta</label>
     <select id="modelo" class="campo">
       <option value="">Sem IA · mostrar os trechos da cartilha (funciona em qualquer aparelho)</option>
-      ${CONFIG.modelos.map((m) => `<option value="${m.id}" ${ia.modelo?.id === m.id ? "selected" : ""}>Com IA · ${esc(m.rotulo)}</option>`).join("")}
+      ${modelosVisiveis.map((m) => `<option value="${m.id}" ${ia.modelo?.id === m.id ? "selected" : ""}>Com IA · ${esc(m.rotulo)}</option>`).join("")}
     </select>
-    <p class="pequeno" id="estado-ia">${temGPU ? "Este navegador tem aceleração gráfica (WebGPU)." : "Este navegador não tem WebGPU: com IA, as respostas ficam lentas. O modo sem IA funciona bem."}
-      ${!ia.modelo ? ` Sugestão para este aparelho: ${esc(modeloPadrao.rotulo)}.` : ""}</p>
-    <div id="carga" hidden><span class="pequeno" id="carga-txt"></span><progress id="carga-bar" max="1" value="0"></progress></div>
+    <p class="pequeno" id="estado-ia">${ia.ativo ? `IA ligada (${esc(ia.modelo.rotulo)}).` : temGPU ? "Este navegador tem aceleração gráfica (WebGPU)." : "Este navegador não tem WebGPU: com IA, as respostas ficam muito lentas."}
+      ${!ia.modelo && !aparelhoFraco ? ` Sugestão para este aparelho: ${esc(modeloPadrao.rotulo)}.` : ""}
+      ${aparelhoFraco ? " Atenção: neste aparelho a IA pode deixar o celular lento. Ela é desligada quando você sai desta tela." : ""}</p>
+    <div class="acoes"><button type="button" id="desligar" ${ia.worker ? "" : "hidden"}>Desligar IA e liberar memória</button></div>
+    <div id="carga" hidden><span class="pequeno" id="carga-txt"></span><progress id="carga-bar" max="1" value="0"></progress></div>`
+    : `
+    <p class="pequeno">Neste aparelho as respostas mostram o trecho da cartilha que mais combina com sua pergunta, sem IA, para não deixar o celular lento.</p>
+    <details><summary class="pequeno">Opções avançadas</summary>
+      <p class="pequeno">A IA baixa um modelo de cerca de 200 MB e usa bastante memória. Em celulares mais simples ela pode deixar o aparelho lento até você fechar o aplicativo.</p>
+      <button type="button" id="avancado">Quero testar a IA mesmo assim</button>
+    </details>`}
   </section>
   <div class="conversa" id="conversa" aria-live="polite"></div>
   <form class="cartao" id="f-perg">
@@ -284,9 +321,13 @@ function vPergunte() {
     <div class="acoes"><button class="primario" id="enviar">Perguntar</button></div>
     <p class="pequeno">Em urgência, ligue 192. A resposta é educativa e não substitui consulta.</p>
   </form>`;
+  if ($("#avancado")) $("#avancado").onclick = () => { ia.avancado = true; vPergunte(); };
+  if ($("#desligar")) $("#desligar").onclick = () => desligarIA("IA desligada. A memória foi liberada; o modelo continua guardado para a próxima vez.");
   const sel = $("#modelo");
-  if (!ia.modelo) sel.value = "";
-  sel.onchange = () => ativarModelo(sel.value);
+  if (sel) {
+    if (!ia.modelo) sel.value = "";
+    sel.onchange = () => (sel.value ? ativarModelo(sel.value) : desligarIA("Modo sem IA."));
+  }
   ia.conversa.forEach(renderMsg);
   $("#f-perg").onsubmit = (e) => { e.preventDefault(); perguntar(); };
   $("#pergunta").onkeydown = (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); perguntar(); } };
@@ -321,6 +362,7 @@ function ativarModelo(id) {
     ia.worker = new Worker(new URL("./llm-worker.js", import.meta.url), { type: "module" });
   }
   ia.carregando = true;
+  if ($("#desligar")) $("#desligar").hidden = false;
   const carga = $("#carga"); carga.hidden = false;
   $("#carga-txt").textContent = "Preparando o modelo… Na primeira vez ele é baixado; depois fica guardado no aparelho.";
   $("#enviar").disabled = true;
@@ -330,6 +372,7 @@ function ativarModelo(id) {
       $("#carga-txt").textContent = `Baixando o modelo: ${(data.carregado / 1e6).toFixed(0)} de ${(data.total / 1e6).toFixed(0)} MB`;
     } else if (data.tipo === "pronto") {
       ia.ativo = true; ia.carregando = false; ia.device = data.device;
+      reiniciarOcioso();
       if ($("#carga")) $("#carga").hidden = true;
       if ($("#estado-ia")) $("#estado-ia").textContent = `IA pronta (${m.rotulo}), rodando ${data.device === "webgpu" ? "na GPU" : "na CPU"} deste aparelho.`;
       if ($("#enviar")) $("#enviar").disabled = false;
@@ -400,6 +443,7 @@ async function perguntar() {
     });
   });
   if ($("#enviar")) $("#enviar").disabled = false;
+  reiniciarOcioso();
 }
 
 // ---------------------------------------------------------------- privacidade
@@ -447,7 +491,15 @@ async function vPrivacidade() {
   };
 }
 
+// ---------------------------------------------------------------- partida
+navegar(); // depois de todas as declarações (rotas usam o estado da IA)
+
 // ---------------------------------------------------------------- offline
 if ("serviceWorker" in navigator && location.protocol !== "file:") {
-  navigator.serviceWorker.register("sw.js").catch((e) => console.warn("Service worker:", e));
+  const havia = !!navigator.serviceWorker.controller;
+  let recarregou = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (havia && !recarregou) { recarregou = true; location.reload(); } // versão nova assumiu: recarrega uma vez
+  });
+  navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).catch((e) => console.warn("Service worker:", e));
 }

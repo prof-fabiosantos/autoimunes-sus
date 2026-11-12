@@ -2,6 +2,7 @@
 // servidor no Brasil (hostModelos) ou junto com o app (modelosLocais) e
 // desligue permitirModelosRemotos.
 export const CONFIG = {
+  versaoApp: "0.1.3",          // mostrada no app; mude junto com VERSAO no sw.js
   versaoConsentimento: "2026-11-v1",
 
   // Geradores LFM (Liquid AI), os mesmos testados no rag-lfm/cliente.
